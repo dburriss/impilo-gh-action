@@ -1,0 +1,36 @@
+# action.yml
+name: 'Impilo team utility'
+description: 'Get various data about code like vulnerabilities and license usage.'
+inputs:
+  config-file:
+    description: 'Config file'
+    required: false
+    default: 'impilo.yml'
+  ignore-config-file:
+    description: 'Ignore any config file'
+    required: false
+    default: false
+  project-directory:
+    description: 'Directory where the project file is found'
+    required: false
+    default: ''
+  project-directory:
+    description: 'Directory where the project file is found'
+    required: false
+    default: './'
+  scan-vulnerabilities:
+    description: 'Vulnerabilities should be scanned'
+    required: false
+    default: true
+  scan-licenses:
+    description: 'Licenses should be scanned'
+    required: false
+    default: true
+outputs:
+  config-file:
+    description: 'Foo - remove'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.config-file }}
