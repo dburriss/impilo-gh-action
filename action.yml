@@ -14,10 +14,6 @@ inputs:
     description: 'Directory where the project file is found'
     required: false
     default: ''
-  project-directory:
-    description: 'Directory where the project file is found'
-    required: false
-    default: './'
   scan-vulnerabilities:
     description: 'Vulnerabilities should be scanned'
     required: false
@@ -34,3 +30,7 @@ runs:
   image: 'Dockerfile'
   args:
     - ${{ inputs.config-file }}
+    - ${{ inputs.ignore-config-file }}
+    - ${{ inputs.project-directory }}
+    - ${{ inputs.scan-vulnerabilities }}
+    - ${{ inputs.scan-licenses }}
