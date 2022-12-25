@@ -1,8 +1,9 @@
-package input
+package gen
 
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -14,8 +15,15 @@ func Normalize(str string) string {
 }
 
 // for filed name
-func Title(str string) string {
-	return cases.Title(language.English).String(str)
+func CamelCase(str string) string {
+	var titled []string
+
+	words := strings.Split(str, "-")
+
+	for _, value := range words {
+		titled = append(titled, cases.Title(language.English).String(Normalize(value)))
+	}
+	return strings.Join(titled, "")
 }
 
 func FormatT(t string, v string) string {
@@ -34,4 +42,16 @@ func StripArg(arg string) (string, bool) {
 		return ms[1], true
 	}
 	return "", false
+}
+
+// parses the string to a boolean returning (value, isBoolean)
+func AsBool(str string) (bool, bool) {
+	switch strings.ToLower(str) {
+	case "true":
+		return true, true
+	case "false":
+		return false, true
+	default:
+		return false, false
+	}
 }

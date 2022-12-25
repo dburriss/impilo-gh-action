@@ -3,6 +3,10 @@
 // Package input contains functionality for handling the CLi input
 package input
 
+import (
+	"strconv"
+)
+
 // ActionInput represents schema of action.yaml for generating input for arguments
 type ActionInput struct {
 	{{ range .Items }}
@@ -15,7 +19,11 @@ func NewActionInput(args []string) ActionInput {
 	{{ range .Items }}
 	var {{ .VarName }} = {{ .DefaultValue }}
 	if argCount > {{ .Index }} {
-		{{ .VarName }} = args[{{ .Index }}]
+		{{ if eq .Type "string" }}{{ .VarName }} = args[{{ .Index }}] {{ end }}
+		{{ if eq .Type "bool" }}tmp,bErr := strconv.ParseBool(args[{{ .Index }}])
+		if bErr != nil {
+			{{ .VarName }} = tmp 
+		}{{ end }}
 	} {{ end }}
 
 	return ActionInput{

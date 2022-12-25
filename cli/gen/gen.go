@@ -3,13 +3,11 @@
 package main
 
 import (
-	"fmt"
+	"dburriss/impilo_gh/gen"
 	"io/ioutil"
 	"log"
 	"os"
 	"text/template"
-
-	"dburriss/impilo_gh/input"
 
 	"gopkg.in/yaml.v2"
 )
@@ -57,35 +55,40 @@ func main() {
 	if err != nil {
 		log.Fatal("Error during Unmarshal(): ", err)
 	}
-	fmt.Println("YAML: ", actionYaml)
+	// fmt.Println("YAML: ", actionYaml)
 	// map action yaml to template data
 
 	// get args from runs.args
 	var args []string
 	for _, v := range actionYaml.Runs.Args {
-		arg, matched := input.StripArg(v)
+		arg, matched := gen.StripArg(v)
 		if matched {
 			args = append(args, arg)
 		}
 	}
 
 	var items []TemplateItem
-	i := 0
-	for k, v := range actionYaml.Inputs {
-		varName := input.Normalize(k)
+	for i, k := range args {
+		varName := gen.Normalize(k)
+		v := actionYaml.Inputs[k]
+		t := "string"
+		_, isBool := gen.AsBool(v.Default)
+		if isBool {
+			t = "bool"
+		}
 		item := TemplateItem{
 			Index:        i,
-			FieldName:    input.Title(varName),
+			FieldName:    gen.CamelCase(k),
 			VarName:      varName,
-			DefaultValue: input.FormatT("string", v.Default),
-			Type:         "string",
+			DefaultValue: gen.FormatT(t, v.Default),
+			Type:         t,
 		}
 		items = append(items, item)
 		i++
 	}
 
 	// create template
-	template, err := template.ParseFiles("./input/action.template.txt")
+	template, err := template.ParseFiles("./gen/action.template.txt")
 
 	if err != nil {
 		panic(err)
