@@ -1,7 +1,6 @@
 package main
 
 import (
-	"dburriss/impilo_gh/input"
 	"fmt"
 	"os"
 )
@@ -39,7 +38,7 @@ func newConfig() Config {
 func main() {
 	// input
 	args := os.Args[1:]
-	actionInput := input.NewActionInput(args)
+	actionInput := NewActionInput(args)
 	fmt.Println("Input", actionInput)
 
 	// load config file if exists

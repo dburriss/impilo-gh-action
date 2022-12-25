@@ -95,7 +95,7 @@ func main() {
 	}
 
 	// create the src file to write template to
-	srcFile, err := os.Create("./input/action.generated.go")
+	srcFile, err := os.Create("./input.generated.go")
 	if err != nil {
 		log.Println("file creation ERROR: ", err)
 		return
