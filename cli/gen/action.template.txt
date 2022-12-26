@@ -13,7 +13,7 @@ type ActionInput struct {
 	{{ .FieldName }} {{ .Type }}{{ end }}
 }
 
-// NewActionInput creates a new ActionInput instance
+// NewActionInput creates a new ActionInput instance from CLi args
 func NewActionInput(args []string) ActionInput {
 	argCount := len(args)
 	{{ range .Items }}

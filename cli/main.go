@@ -3,55 +3,55 @@ package main
 import (
 	"fmt"
 	"os"
+	"sync"
 )
 
-//go:generate go run ./gen/gen.go
+//go:generate go run ./gen/main.go
 
-type Project struct {
-	Name                    string
-	Tags                    []string
-	PackageManager          string
-	TargetDirectory         string
-	AllowedLicenses         []string
-	SkipScanVulnerabilities bool
-	SkipScanLicenses        bool
-}
+/*
+ARGS -> INPUT -> CONFIG -> COMMANDs ->
+							| SCAN VULNERABILITIES 	-> REPORT |
+							| SCAN LICENSES			-> REPORT |
+*/
 
-type Config struct {
-	AllowedLicenses     []string
-	PackageLicenseMap   map[string]string
-	Tags                []string
-	ScanVulnerabilities bool
-	ScanLicenses        bool
-}
-
-func newConfig() Config {
-	return Config{
-		AllowedLicenses:     []string{},
-		PackageLicenseMap:   map[string]string{},
-		Tags:                []string{},
-		ScanVulnerabilities: true,
-		ScanLicenses:        false,
-	}
+func channelCmd(wg *sync.WaitGroup, reportFeed chan []Report, cmd Command) {
+	result := cmd.Execute()
+	reportFeed <- result
+	wg.Done()
 }
 
 func main() {
-	// input
-	args := os.Args[1:]
-	actionInput := NewActionInput(args)
-	fmt.Println("Input", actionInput)
+	// ARGS to INPUT
+	actionInput := NewActionInput(os.Args[1:])
 
-	// load config file if exists
-	config := newConfig()
-	if !actionInput.IgnoreConfigFile {
-		fmt.Println("Config", config)
-	} else {
-		fmt.Println("Ignore config file.")
+	// INPUT to CONFIG
+	config := BuildConfig(actionInput)
+	fmt.Println("Config: ", config)
+	// CONFIG to COMMANDS
+	commands := BuildCommands(config)
+	fmt.Println("Commands: ", commands)
+
+	// execute COMMANDs
+	var wg sync.WaitGroup
+	// create a channel that sends type `[]Report`
+	ch := make(chan []Report)
+	for _, cmd := range commands {
+		go channelCmd(&wg, ch, cmd)
 	}
 
-	// override with input
+	wg.Wait()
 
-	// parse to commands
-
-	// execute commands
+	go func() {
+		println("Closing channel connection...") // always prints before planets
+		wg.Wait()
+		// after all goroutines finished sending on channel, close it
+		close(ch)
+	}()
+	// run REPORTs
+	// todo: see if can run reports concurrently
+	for reports := range ch {
+		for report := range reports {
+			fmt.Println(report)
+		}
+	}
 }

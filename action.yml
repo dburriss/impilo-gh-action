@@ -2,6 +2,10 @@
 name: 'Impilo team utility'
 description: 'Get various data about code like vulnerabilities and license usage.'
 inputs:
+  project-name:
+    description: 'Name of the project'
+    required: false
+    default: ''
   config-file:
     description: 'Config file'
     required: false
@@ -9,11 +13,15 @@ inputs:
   ignore-config-file:
     description: 'Ignore any config file'
     required: false
-    default: false
+    default: true
   project-directory:
     description: 'Directory where the project file is found'
     required: false
     default: ''
+  package-manager:
+    description: 'Package manager eg. npm, nuget'
+    required: false
+    default: 'npm'
   scan-vulnerabilities:
     description: 'Vulnerabilities should be scanned'
     required: false
@@ -29,8 +37,10 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
+    - ${{ inputs.project-name }}
     - ${{ inputs.config-file }}
     - ${{ inputs.ignore-config-file }}
     - ${{ inputs.project-directory }}
+    - ${{ inputs.package-manager }}
     - ${{ inputs.scan-vulnerabilities }}
     - ${{ inputs.scan-licenses }}

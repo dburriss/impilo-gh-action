@@ -43,7 +43,7 @@ type TemplateData struct {
 }
 
 func main() {
-	// read json
+	// read yaml
 	content, err := ioutil.ReadFile("../action.yml")
 	if err != nil {
 		log.Fatal("Error when opening file: ", err)

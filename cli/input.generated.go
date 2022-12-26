@@ -10,47 +10,59 @@ import (
 // ActionInput represents schema of action.yaml for generating input for arguments
 type ActionInput struct {
 	
+	ProjectName string
 	ConfigFile string
 	IgnoreConfigFile bool
 	ProjectDirectory string
+	PackageManager string
 	ScanVulnerabilities bool
 	ScanLicenses bool
 }
 
-// NewActionInput creates a new ActionInput instance
+// NewActionInput creates a new ActionInput instance from CLi args
 func NewActionInput(args []string) ActionInput {
 	argCount := len(args)
 	
-	var configfile = "impilo.yml"
+	var projectname = ""
 	if argCount > 0 {
-		configfile = args[0] 
+		projectname = args[0] 
 		
 	} 
-	var ignoreconfigfile = false
+	var configfile = "impilo.yml"
 	if argCount > 1 {
+		configfile = args[1] 
 		
-		tmp,bErr := strconv.ParseBool(args[1])
+	} 
+	var ignoreconfigfile = true
+	if argCount > 2 {
+		
+		tmp,bErr := strconv.ParseBool(args[2])
 		if bErr != nil {
 			ignoreconfigfile = tmp 
 		}
 	} 
 	var projectdirectory = ""
-	if argCount > 2 {
-		projectdirectory = args[2] 
+	if argCount > 3 {
+		projectdirectory = args[3] 
+		
+	} 
+	var packagemanager = "npm"
+	if argCount > 4 {
+		packagemanager = args[4] 
 		
 	} 
 	var scanvulnerabilities = true
-	if argCount > 3 {
+	if argCount > 5 {
 		
-		tmp,bErr := strconv.ParseBool(args[3])
+		tmp,bErr := strconv.ParseBool(args[5])
 		if bErr != nil {
 			scanvulnerabilities = tmp 
 		}
 	} 
 	var scanlicenses = true
-	if argCount > 4 {
+	if argCount > 6 {
 		
-		tmp,bErr := strconv.ParseBool(args[4])
+		tmp,bErr := strconv.ParseBool(args[6])
 		if bErr != nil {
 			scanlicenses = tmp 
 		}
@@ -58,9 +70,11 @@ func NewActionInput(args []string) ActionInput {
 
 	return ActionInput{
 		
+		ProjectName: projectname,
 		ConfigFile: configfile,
 		IgnoreConfigFile: ignoreconfigfile,
 		ProjectDirectory: projectdirectory,
+		PackageManager: packagemanager,
 		ScanVulnerabilities: scanvulnerabilities,
 		ScanLicenses: scanlicenses,
 	}
