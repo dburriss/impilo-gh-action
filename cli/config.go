@@ -40,7 +40,9 @@ func newConfig() Config {
 
 func (input ActionInput) toConfig() Config {
 	project := Project{
-		Name: input.ProjectName,
+		Name:            input.ProjectName,
+		PackageManager:  input.PackageManager,
+		TargetDirectory: input.TargetDirectory,
 	}
 	inputConfig := Config{
 		ScanVulnerabilities: input.ScanLicenses,
@@ -69,11 +71,39 @@ func loadConfigFile(filePath string) (Config, error) {
 // todo: TDD merge
 func merge2Configs(baseConfig Config, overrideWith Config) Config {
 	newConfig := Config{}
+	// AllowedLicenses
 	if overrideWith.AllowedLicenses != nil {
 		newConfig.AllowedLicenses = overrideWith.AllowedLicenses
 	} else if baseConfig.AllowedLicenses != nil {
 		newConfig.AllowedLicenses = baseConfig.AllowedLicenses
 	}
+
+	// PackageLicenseMap
+	if overrideWith.PackageLicenseMap != nil {
+		newConfig.PackageLicenseMap = overrideWith.PackageLicenseMap
+	} else if baseConfig.PackageLicenseMap != nil {
+		newConfig.PackageLicenseMap = baseConfig.PackageLicenseMap
+	}
+
+	// Tags
+	if overrideWith.Tags != nil {
+		newConfig.Tags = overrideWith.Tags
+	} else if baseConfig.Tags != nil {
+		newConfig.Tags = baseConfig.Tags
+	}
+
+	// Projects
+	if overrideWith.Projects != nil {
+		newConfig.Projects = overrideWith.Projects
+	} else if baseConfig.Projects != nil {
+		newConfig.Projects = baseConfig.Projects
+	}
+
+	// ScanVulnerabilities
+	newConfig.ScanVulnerabilities = overrideWith.ScanVulnerabilities
+
+	// ScanLicenses
+	newConfig.ScanLicenses = overrideWith.ScanLicenses
 
 	return newConfig
 }

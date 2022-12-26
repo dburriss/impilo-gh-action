@@ -14,7 +14,7 @@ inputs:
     description: 'Ignore any config file'
     required: false
     default: true
-  project-directory:
+  target-directory:
     description: 'Directory where the project file is found'
     required: false
     default: ''
@@ -40,7 +40,7 @@ runs:
     - ${{ inputs.project-name }}
     - ${{ inputs.config-file }}
     - ${{ inputs.ignore-config-file }}
-    - ${{ inputs.project-directory }}
+    - ${{ inputs.target-directory }}
     - ${{ inputs.package-manager }}
     - ${{ inputs.scan-vulnerabilities }}
     - ${{ inputs.scan-licenses }}

@@ -36,21 +36,20 @@ func main() {
 	// create a channel that sends type `[]Report`
 	ch := make(chan []Report)
 	for _, cmd := range commands {
+		//cmd.Execute()
+		wg.Add(1)
 		go channelCmd(&wg, ch, cmd)
 	}
 
-	wg.Wait()
-
 	go func() {
-		println("Closing channel connection...") // always prints before planets
 		wg.Wait()
 		// after all goroutines finished sending on channel, close it
 		close(ch)
 	}()
-	// run REPORTs
+	// // run REPORTs
 	// todo: see if can run reports concurrently
 	for reports := range ch {
-		for report := range reports {
+		for _, report := range reports {
 			fmt.Println(report)
 		}
 	}

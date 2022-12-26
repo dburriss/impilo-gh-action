@@ -13,7 +13,7 @@ type ActionInput struct {
 	ProjectName string
 	ConfigFile string
 	IgnoreConfigFile bool
-	ProjectDirectory string
+	TargetDirectory string
 	PackageManager string
 	ScanVulnerabilities bool
 	ScanLicenses bool
@@ -41,9 +41,9 @@ func NewActionInput(args []string) ActionInput {
 			ignoreconfigfile = tmp 
 		}
 	} 
-	var projectdirectory = ""
+	var targetdirectory = ""
 	if argCount > 3 {
-		projectdirectory = args[3] 
+		targetdirectory = args[3] 
 		
 	} 
 	var packagemanager = "npm"
@@ -73,7 +73,7 @@ func NewActionInput(args []string) ActionInput {
 		ProjectName: projectname,
 		ConfigFile: configfile,
 		IgnoreConfigFile: ignoreconfigfile,
-		ProjectDirectory: projectdirectory,
+		TargetDirectory: targetdirectory,
 		PackageManager: packagemanager,
 		ScanVulnerabilities: scanvulnerabilities,
 		ScanLicenses: scanlicenses,
