@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -88,11 +89,64 @@ type ScanVulnerabilitiesCommand struct {
 	TargetDirectory string
 }
 
+func trim(s string) string {
+	return strings.Trim(s, " ")
+}
+
+func correctFoundIn(version string) string {
+	version = trim(version)
+	if strings.HasPrefix(version, ">=") {
+		version = strings.Replace(version, ">=", "", 1)
+	}
+	return version
+}
+
+func correctFixedIn(version string) string {
+	version = trim(version)
+	if strings.HasPrefix(version, "<=") {
+		version = strings.Replace(version, "=", "", 1)
+	} else if strings.HasPrefix(version, "<") {
+		version = strings.Replace(version, "<", "", 1)
+	}
+	return version
+}
+
 func parseNpmRange(rangeS string) map[string]string {
 	r := make(map[string]string)
-	if rangeS == "*" {
-		r["foundIn"] = "0.0.0"
-		r["fixedIn"] = ""
+	ranges := strings.Split(rangeS, " - ")
+	switch len(ranges) {
+	case 1:
+		// " " || "*"
+		rangeS = trim(rangeS)
+		if rangeS == "*" || rangeS == " " || rangeS == "" {
+			r["foundIn"] = "0.0.0"
+			r["fixedIn"] = ""
+			break
+		}
+
+		ranges := strings.Split(rangeS, " ")
+		switch len(ranges) {
+		case 1:
+			if strings.HasPrefix(rangeS, "<=") {
+				r["foundIn"] = "0.0.0"
+				r["fixedIn"] = ">" + trim(strings.Replace(ranges[0], "<=", "", 1))
+			} else if strings.HasPrefix(rangeS, "<") {
+				r["foundIn"] = "0.0.0"
+				r["fixedIn"] = trim(strings.Replace(ranges[0], "<", "", 1))
+			} else {
+				r["foundIn"] = correctFoundIn(ranges[0])
+				r["fixedIn"] = ""
+			}
+		case 2:
+			// >=a.b.c <x.y.z
+			r["foundIn"] = correctFoundIn(ranges[0])
+			r["fixedIn"] = correctFixedIn(ranges[1])
+		}
+
+	case 2:
+		// x - y
+		r["foundIn"] = trim(ranges[0])
+		r["fixedIn"] = ">" + trim(ranges[1])
 	}
 	return r
 }
@@ -171,6 +225,21 @@ func parseNpmVulnerabilities(rawJson string) []map[string]string {
 	return vulnerabilities
 }
 
+func severityValue(severity string) int {
+	switch severity {
+	case "critical":
+		return 4
+	case "high":
+		return 3
+	case "moderate":
+		return 2
+	case "low":
+		return 1
+	default:
+		return 1
+	}
+}
+
 func (data ScanVulnerabilitiesCommand) Execute() []Report {
 	fmt.Println("Package manager", data.PackageManager)
 	fmt.Println("Target directory", data.TargetDirectory)
@@ -193,9 +262,17 @@ func (data ScanVulnerabilitiesCommand) Execute() []Report {
 	}
 
 	var reports []Report
-	//json, err := gabs.ParseJSON([]byte(outbuf.String()))
+	vulnerabilities := parseNpmVulnerabilities(outbuf.String())
+	sort.Slice(vulnerabilities, func(i, j int) bool {
+		si := severityValue(vulnerabilities[i]["severity"])
+		sj := severityValue(vulnerabilities[j]["severity"])
+		if si == sj {
+			return vulnerabilities[i]["packageName"] < vulnerabilities[j]["packageName"]
+		}
+		return severityValue(vulnerabilities[i]["severity"]) > severityValue(vulnerabilities[j]["severity"])
+	})
 	var stdoutReport Report = ScanVulnerabilitiesStdOutReport{
-		data: parseNpmVulnerabilities(outbuf.String()),
+		data: vulnerabilities,
 	}
 	reports = append(reports, stdoutReport)
 	return reports
