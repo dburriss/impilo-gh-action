@@ -50,7 +50,8 @@ func main() {
 	// todo: see if can run reports concurrently
 	for reports := range ch {
 		for _, report := range reports {
-			fmt.Println(report)
+			//fmt.Println(report)
+			report.Run()
 		}
 	}
 }
