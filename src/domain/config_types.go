@@ -1,12 +1,11 @@
-package main
+package domain
 
-import (
-	"fmt"
-	"io/ioutil"
-	"log"
+// Input is generated
+// TODO: move type to this package
 
-	"gopkg.in/yaml.v2"
-)
+// ====================
+// Config
+// ====================
 
 type Project struct {
 	Name                    string
@@ -27,7 +26,7 @@ type Config struct {
 	Projects            []Project
 }
 
-func newConfig() Config {
+func NewConfig() Config {
 	return Config{
 		AllowedLicenses:     []string{},
 		PackageLicenseMap:   map[string]string{},
@@ -38,14 +37,14 @@ func newConfig() Config {
 	}
 }
 
-func (input ActionInput) toConfig() Config {
+func (input ActionInput) ToConfig() Config {
 	project := Project{
 		Name:            input.ProjectName,
 		PackageManager:  input.PackageManager,
 		TargetDirectory: input.TargetDirectory,
 	}
 	inputConfig := Config{
-		ScanVulnerabilities: input.ScanLicenses,
+		ScanVulnerabilities: input.ScanVulnerabilities,
 		ScanLicenses:        input.ScanLicenses,
 		Projects:            []Project{project},
 	}
@@ -53,23 +52,7 @@ func (input ActionInput) toConfig() Config {
 	return inputConfig
 }
 
-// loads the given filePath into a Config. If error returns Config{}.
-func loadConfigFile(filePath string) (Config, error) {
-
-	// read config file
-	content, err := ioutil.ReadFile(filePath)
-
-	// Deserialize
-	configFile := Config{}
-	if err == nil {
-		err = yaml.Unmarshal(content, &configFile)
-	}
-
-	return configFile, err
-}
-
-// todo: TDD merge
-func merge2Configs(baseConfig Config, overrideWith Config) Config {
+func Merge2Configs(baseConfig Config, overrideWith Config) Config {
 	newConfig := Config{}
 	// AllowedLicenses
 	if overrideWith.AllowedLicenses != nil {
@@ -108,40 +91,19 @@ func merge2Configs(baseConfig Config, overrideWith Config) Config {
 	return newConfig
 }
 
-func mergeConfigs(configs []Config) Config {
+func MergeConfigs(configs []Config) Config {
 	nrConfigs := len(configs)
 	switch nrConfigs {
 	case 0:
-		return newConfig()
+		return NewConfig()
 	case 1:
 		return configs[0]
 	case 2:
-		newConfig := merge2Configs(configs[0], configs[1])
+		newConfig := Merge2Configs(configs[0], configs[1])
 		return newConfig
 	default:
-		newConfig := merge2Configs(configs[0], configs[1])
+		newConfig := Merge2Configs(configs[0], configs[1])
 		configs := append([]Config{newConfig}, configs[2:]...)
-		return mergeConfigs(configs)
+		return MergeConfigs(configs)
 	}
-}
-
-func BuildConfig(actionInput ActionInput) Config {
-	configs := []Config{newConfig()}
-	if actionInput.IgnoreConfigFile {
-		fmt.Println("Ignore config file.")
-		configs = append(configs, actionInput.toConfig())
-	} else {
-		// input to config
-		configs = append(configs, actionInput.toConfig())
-		// load config file
-		fileConfig, err := loadConfigFile(actionInput.ConfigFile)
-		if err != nil {
-			log.Fatalf("Error loading config file %s:  \n", err)
-			log.Fatal(err)
-		}
-		// fileConfig overrides input config
-		configs = append(configs, fileConfig)
-	}
-
-	return mergeConfigs(configs)
 }

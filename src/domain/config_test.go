@@ -1,4 +1,4 @@
-package main
+package domain
 
 import (
 	"reflect"
@@ -15,7 +15,7 @@ func canBeNil(value reflect.Value) bool {
 }
 
 func TestNewConfigShouldInitAllFields(t *testing.T) {
-	config := newConfig()
+	config := NewConfig()
 	v := reflect.ValueOf(config)
 	n := v.NumField()
 
@@ -31,11 +31,11 @@ func TestNewConfigShouldInitAllFields(t *testing.T) {
 
 func TestMergeSetsAllowedLicenses(t *testing.T) {
 	expected := []string{"MIT"}
-	baseConfig := newConfig()
-	overrideWith := newConfig()
+	baseConfig := NewConfig()
+	overrideWith := NewConfig()
 	overrideWith.AllowedLicenses = expected
 
-	config := mergeConfigs([]Config{baseConfig, overrideWith})
+	config := MergeConfigs([]Config{baseConfig, overrideWith})
 
 	if !reflect.DeepEqual(config.AllowedLicenses, expected) {
 		t.Errorf("Expected %+q, instead got %+q", expected, config.AllowedLicenses)
@@ -44,11 +44,11 @@ func TestMergeSetsAllowedLicenses(t *testing.T) {
 
 func TestMergePackageLicenseMap(t *testing.T) {
 	expected := map[string]string{"go": "BSD-3"}
-	baseConfig := newConfig()
-	overrideWith := newConfig()
+	baseConfig := NewConfig()
+	overrideWith := NewConfig()
 	overrideWith.PackageLicenseMap = expected
 
-	config := mergeConfigs([]Config{baseConfig, overrideWith})
+	config := MergeConfigs([]Config{baseConfig, overrideWith})
 
 	if !reflect.DeepEqual(config.PackageLicenseMap, expected) {
 		t.Errorf("Expected %+q, instead got %+q", expected, config.PackageLicenseMap)
@@ -57,11 +57,11 @@ func TestMergePackageLicenseMap(t *testing.T) {
 
 func TestMergeTags(t *testing.T) {
 	expected := []string{"app:impilo"}
-	baseConfig := newConfig()
-	overrideWith := newConfig()
+	baseConfig := NewConfig()
+	overrideWith := NewConfig()
 	overrideWith.Tags = expected
 
-	config := mergeConfigs([]Config{baseConfig, overrideWith})
+	config := MergeConfigs([]Config{baseConfig, overrideWith})
 
 	if !reflect.DeepEqual(config.Tags, expected) {
 		t.Errorf("Expected %+q, instead got %+q", expected, config.Tags)
@@ -73,11 +73,11 @@ func TestMergeProjects(t *testing.T) {
 		Name: "test-app",
 	}
 	expected := []Project{project}
-	baseConfig := newConfig()
-	overrideWith := newConfig()
+	baseConfig := NewConfig()
+	overrideWith := NewConfig()
 	overrideWith.Projects = expected
 
-	config := mergeConfigs([]Config{baseConfig, overrideWith})
+	config := MergeConfigs([]Config{baseConfig, overrideWith})
 
 	if !reflect.DeepEqual((config.Projects), expected) {
 		t.Errorf("Expected %+v, instead got %+v", expected, config.Projects)
@@ -86,12 +86,12 @@ func TestMergeProjects(t *testing.T) {
 
 func TestMergeScanVulnerabilities(t *testing.T) {
 	expected := true
-	baseConfig := newConfig()
+	baseConfig := NewConfig()
 	baseConfig.ScanVulnerabilities = false
-	overrideWith := newConfig()
+	overrideWith := NewConfig()
 	overrideWith.ScanVulnerabilities = expected
 
-	config := mergeConfigs([]Config{baseConfig, overrideWith})
+	config := MergeConfigs([]Config{baseConfig, overrideWith})
 
 	if config.ScanVulnerabilities != expected {
 		t.Errorf("Expected %+v, instead got %+v", expected, config.ScanVulnerabilities)
@@ -100,12 +100,12 @@ func TestMergeScanVulnerabilities(t *testing.T) {
 
 func TestMergeScanLicenses(t *testing.T) {
 	expected := true
-	baseConfig := newConfig()
+	baseConfig := NewConfig()
 	baseConfig.ScanLicenses = false
-	overrideWith := newConfig()
+	overrideWith := NewConfig()
 	overrideWith.ScanLicenses = expected
 
-	config := mergeConfigs([]Config{baseConfig, overrideWith})
+	config := MergeConfigs([]Config{baseConfig, overrideWith})
 
 	if config.ScanLicenses != expected {
 		t.Errorf("Expected %+v, instead got %+v", expected, config.ScanLicenses)
@@ -117,7 +117,7 @@ func TestToConfigProjectName(t *testing.T) {
 	input := NewActionInput([]string{})
 	input.ProjectName = expected
 
-	config := input.toConfig()
+	config := input.ToConfig()
 	actual := config.Projects[0].Name
 
 	if actual != expected {
@@ -130,7 +130,7 @@ func TestToConfigPackageManager(t *testing.T) {
 	input := NewActionInput([]string{})
 	input.PackageManager = expected
 
-	config := input.toConfig()
+	config := input.ToConfig()
 	actual := config.Projects[0].PackageManager
 
 	if actual != expected {
@@ -138,13 +138,39 @@ func TestToConfigPackageManager(t *testing.T) {
 	}
 }
 
-func TestToConfigProjectDirectory(t *testing.T) {
+func TestToConfigTargetDirectory(t *testing.T) {
 	expected := "nuget"
 	input := NewActionInput([]string{})
 	input.TargetDirectory = expected
 
-	config := input.toConfig()
+	config := input.ToConfig()
 	actual := config.Projects[0].TargetDirectory
+
+	if actual != expected {
+		t.Errorf("Expected %+v, instead got %+v", expected, actual)
+	}
+}
+
+func TestToConfigScanVulnerabilities(t *testing.T) {
+	expected := true
+	input := NewActionInput([]string{})
+	input.ScanVulnerabilities = true
+
+	config := input.ToConfig()
+	actual := config.ScanVulnerabilities
+
+	if actual != expected {
+		t.Errorf("Expected %+v, instead got %+v", expected, actual)
+	}
+}
+
+func TestToConfigScanLicenses(t *testing.T) {
+	expected := true
+	input := NewActionInput([]string{})
+	input.ScanLicenses = true
+
+	config := input.ToConfig()
+	actual := config.ScanLicenses
 
 	if actual != expected {
 		t.Errorf("Expected %+v, instead got %+v", expected, actual)

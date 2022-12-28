@@ -1,10 +1,8 @@
-package main
+package npm
 
 import (
 	"testing"
 )
-
-// range of vulnerability
 
 // " "
 func TestRangeBlank(t *testing.T) {

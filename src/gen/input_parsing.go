@@ -45,8 +45,19 @@ func StripArg(arg string) (string, bool) {
 }
 
 // parses the string to a boolean returning (value, isBoolean)
-func AsBool(str string) (bool, bool) {
-	switch strings.ToLower(str) {
+func AsBool(defaultValue string, typeValue string) (bool, bool) {
+	if typeValue == "boolean" {
+		switch strings.ToLower(defaultValue) {
+		case "true":
+			return true, true
+		case "false":
+			return false, true
+		default:
+			return false, true
+		}
+	}
+
+	switch strings.ToLower(defaultValue) {
 	case "true":
 		return true, true
 	case "false":

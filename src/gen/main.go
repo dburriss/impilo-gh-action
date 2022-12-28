@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"text/template"
 
 	"gopkg.in/yaml.v2"
@@ -16,6 +17,7 @@ type Input struct {
 	Description string
 	Required    bool
 	Default     string
+	Type        string
 }
 
 type Runs struct {
@@ -31,15 +33,26 @@ type Action struct {
 // template data
 type TemplateItem struct {
 	Index        int
+	ArgName      string
 	FieldName    string
 	VarName      string
 	DefaultValue string
+	EnvKey       string
+	OptsType     string
 	Type         string
+	Description  string
 }
 
 type TemplateData struct {
 	Items []TemplateItem
 	Args  []string
+}
+
+func descAndDefault(input Input, t string) string {
+	if input.Default == "" || t == "bool" {
+		return input.Description
+	}
+	return input.Description + " Default: " + input.Default
 }
 
 func main() {
@@ -72,30 +85,39 @@ func main() {
 		varName := gen.Normalize(k)
 		v := actionYaml.Inputs[k]
 		t := "string"
-		_, isBool := gen.AsBool(v.Default)
+		_, isBool := gen.AsBool(v.Default, v.Type)
 		if isBool {
 			t = "bool"
 		}
 		item := TemplateItem{
 			Index:        i,
+			ArgName:      k,
 			FieldName:    gen.CamelCase(k),
 			VarName:      varName,
 			DefaultValue: gen.FormatT(t, v.Default),
+			EnvKey:       "INPUT_" + strings.ToUpper(k),
 			Type:         t,
+			OptsType:     t,
+			Description:  descAndDefault(v, t),
 		}
+
+		if t == "string" && strings.HasSuffix(k, "file") {
+			item.OptsType = "flags.Filename"
+		}
+
 		items = append(items, item)
 		i++
 	}
 
 	// create template
-	template, err := template.ParseFiles("./gen/action.template.txt")
+	template, err := template.ParseFiles("./gen/action_template.go.tpl")
 
 	if err != nil {
 		panic(err)
 	}
 
 	// create the src file to write template to
-	srcFile, err := os.Create("./input.generated.go")
+	srcFile, err := os.Create("./domain/input_types_generated.go")
 	if err != nil {
 		log.Println("file creation ERROR: ", err)
 		return

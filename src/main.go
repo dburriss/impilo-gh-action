@@ -1,6 +1,7 @@
 package main
 
 import (
+	"dburriss/impilo_gh/domain"
 	"fmt"
 	"os"
 	"sync"
@@ -14,7 +15,7 @@ ARGS -> INPUT -> CONFIG -> COMMANDs ->
 							| SCAN LICENSES			-> REPORT |
 */
 
-func channelCmd(wg *sync.WaitGroup, reportFeed chan []Report, cmd Command) {
+func channelCmd(wg *sync.WaitGroup, reportFeed chan []domain.Report, cmd domain.Command) {
 	result := cmd.Execute()
 	reportFeed <- result
 	wg.Done()
@@ -22,19 +23,19 @@ func channelCmd(wg *sync.WaitGroup, reportFeed chan []Report, cmd Command) {
 
 func main() {
 	// ARGS to INPUT
-	actionInput := NewActionInput(os.Args[1:])
-
+	actionInput := domain.NewActionInput(os.Args)
+	fmt.Printf("Input: %+v\n", actionInput)
 	// INPUT to CONFIG
 	config := BuildConfig(actionInput)
-	fmt.Println("Config: ", config)
+	fmt.Printf("Config: %+v\n", config)
 	// CONFIG to COMMANDS
 	commands := BuildCommands(config)
-	fmt.Println("Commands: ", commands)
+	fmt.Printf("Commands: %+v\n", commands)
 
 	// execute COMMANDs
 	var wg sync.WaitGroup
 	// create a channel that sends type `[]Report`
-	ch := make(chan []Report)
+	ch := make(chan []domain.Report)
 	for _, cmd := range commands {
 		//cmd.Execute()
 		wg.Add(1)
@@ -50,7 +51,6 @@ func main() {
 	// todo: see if can run reports concurrently
 	for reports := range ch {
 		for _, report := range reports {
-			//fmt.Println(report)
 			report.Run()
 		}
 	}
