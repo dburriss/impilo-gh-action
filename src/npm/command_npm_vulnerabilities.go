@@ -82,9 +82,27 @@ func (report NpmScanVulnerabilitiesGithubReport) Run() {
 	a := githubactions.New()
 	c, err := a.Context()
 	if err == nil && c.RunID > 0 {
-		a.Group("NPM Vulnerabilities")
-		a.AddStepSummary("")
+		a.Group(report.Title())
 
+		writer := new(strings.Builder)
+		table := tablewriter.NewWriter(writer)
+		table.SetHeader([]string{"SEVERITY"})
+		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+		table.SetCenterSeparator("|")
+		total := "0"
+		for k, v := range report.summary {
+			if k == "total" {
+				total = strconv.FormatInt(v, 10)
+				continue
+			}
+			var rowValues []string
+			rowValues = append(rowValues, k)
+			rowValues = append(rowValues, strconv.FormatInt(v, 10))
+			table.Append(rowValues)
+		}
+		table.SetFooter([]string{"Total", total})
+		table.Render()
+		githubactions.AddStepSummary(writer.String())
 		a.EndGroup()
 	}
 }
