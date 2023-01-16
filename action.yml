@@ -15,7 +15,7 @@ inputs:
   ignore-config-file:
     description: 'Ignore any config file'
     required: false
-    default: true
+    default: 'true'
     type: boolean
   target-directory:
     description: 'Directory where the project file is found'
@@ -30,12 +30,12 @@ inputs:
   scan-vulnerabilities:
     description: 'Vulnerabilities should be scanned'
     required: false
-    default: true
+    default: 'true'
     type: boolean
   scan-licenses:
     description: 'Licenses should be scanned'
     required: false
-    default: true
+    default: 'true'
     type: boolean
 outputs:
   config-file:
