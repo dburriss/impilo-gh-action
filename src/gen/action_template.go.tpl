@@ -18,10 +18,27 @@ type ActionInputOpts struct {
 	{{if eq .OptsType "bool"}}{{ .FieldName }} {{ .OptsType }} `long:"{{ .ArgName }}" description:"{{ .Description }}"` {{ else }}{{ .FieldName }} {{ .OptsType }} `long:"{{ .ArgName }}" description:"{{ .Description }}" default:{{ .DefaultValue }} env:"{{ .EnvKey }}"` {{ end }}{{ end }}
 }
 
+// Initialize a new ActionInputOpts
+func NewActionInputOpts() ActionInputOpts {
+	return ActionInputOpts{
+		{{ range .Items }}
+		{{ .FieldName }}: {{ .DefaultValue }},{{ end }}
+	}
+}
+
 // ActionInput represents values from the arguments
 type ActionInput struct {
 	{{ range .Items }}
 	{{ .FieldName }} {{ .Type }} {{ end }}
+}
+
+// Convert ActionInputOpts to ActionInput
+func (opts ActionInputOpts) AsActionInput() ActionInput {
+	input := ActionInput{
+		{{ range .Items }}
+		{{if eq .OptsType .Type }}{{ .FieldName }}: opts.{{ .FieldName }}{{ else }}{{ .FieldName }}: string(opts.{{ .FieldName }}) {{ end }},{{ end }}
+	}
+	return input
 }
 
 // NewActionInput creates a new ActionInput instance from CLi args
@@ -36,19 +53,15 @@ func NewActionInput(args []string) ActionInput {
 	}
 	{{ range .Items }}{{if eq .OptsType "bool"}}
 	if !slices.SliceContains(args, "--{{ .ArgName }}") {
-		key := "{{ .EnvKey }}"
+		key := "{{ .ArgName }}"
 		value := githubactions.GetInput(key)
 		if value != "" {
-			tmp,bErr := strconv.ParseBool("{{ .DefaultValue }}")
-			if bErr != nil {
+			tmp,bErr := strconv.ParseBool(value)
+			if bErr == nil {
 				opts.{{ .FieldName }} = tmp 
 			}
 		}
 	}{{ end }}{{ end }}
 
-	input := ActionInput{
-		{{ range .Items }}
-		{{if eq .OptsType .Type }}{{ .FieldName }}: opts.{{ .FieldName }}{{ else }}{{ .FieldName }}: string(opts.{{ .FieldName }}) {{ end }},{{ end }}
-	}
-	return input
+	return opts.AsActionInput()
 }

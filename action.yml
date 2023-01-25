@@ -35,7 +35,7 @@ inputs:
   scan-licenses:
     description: 'Licenses should be scanned'
     required: false
-    default: 'true'
+    default: 'false'
     type: boolean
 outputs:
   config-file:

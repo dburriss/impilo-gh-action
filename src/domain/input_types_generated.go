@@ -24,6 +24,20 @@ type ActionInputOpts struct {
 	ScanLicenses bool `long:"scan-licenses" description:"Licenses should be scanned"` 
 }
 
+// Initialize a new ActionInputOpts
+func NewActionInputOpts() ActionInputOpts {
+	return ActionInputOpts{
+		
+		ProjectName: "app",
+		ConfigFile: "impilo.yml",
+		IgnoreConfigFile: true,
+		TargetDirectory: "",
+		PackageManager: "npm",
+		ScanVulnerabilities: true,
+		ScanLicenses: false,
+	}
+}
+
 // ActionInput represents values from the arguments
 type ActionInput struct {
 	
@@ -34,6 +48,21 @@ type ActionInput struct {
 	PackageManager string 
 	ScanVulnerabilities bool 
 	ScanLicenses bool 
+}
+
+// Convert ActionInputOpts to ActionInput
+func (opts ActionInputOpts) AsActionInput() ActionInput {
+	input := ActionInput{
+		
+		ProjectName: opts.ProjectName,
+		ConfigFile: string(opts.ConfigFile) ,
+		IgnoreConfigFile: opts.IgnoreConfigFile,
+		TargetDirectory: opts.TargetDirectory,
+		PackageManager: opts.PackageManager,
+		ScanVulnerabilities: opts.ScanVulnerabilities,
+		ScanLicenses: opts.ScanLicenses,
+	}
+	return input
 }
 
 // NewActionInput creates a new ActionInput instance from CLi args
@@ -48,45 +77,35 @@ func NewActionInput(args []string) ActionInput {
 	}
 	
 	if !slices.SliceContains(args, "--ignore-config-file") {
-		key := "INPUT_IGNORE-CONFIG-FILE"
+		key := "ignore-config-file"
 		value := githubactions.GetInput(key)
 		if value != "" {
-			tmp,bErr := strconv.ParseBool("true")
-			if bErr != nil {
+			tmp,bErr := strconv.ParseBool(value)
+			if bErr == nil {
 				opts.IgnoreConfigFile = tmp 
 			}
 		}
 	}
 	if !slices.SliceContains(args, "--scan-vulnerabilities") {
-		key := "INPUT_SCAN-VULNERABILITIES"
+		key := "scan-vulnerabilities"
 		value := githubactions.GetInput(key)
 		if value != "" {
-			tmp,bErr := strconv.ParseBool("true")
-			if bErr != nil {
+			tmp,bErr := strconv.ParseBool(value)
+			if bErr == nil {
 				opts.ScanVulnerabilities = tmp 
 			}
 		}
 	}
 	if !slices.SliceContains(args, "--scan-licenses") {
-		key := "INPUT_SCAN-LICENSES"
+		key := "scan-licenses"
 		value := githubactions.GetInput(key)
 		if value != "" {
-			tmp,bErr := strconv.ParseBool("true")
-			if bErr != nil {
+			tmp,bErr := strconv.ParseBool(value)
+			if bErr == nil {
 				opts.ScanLicenses = tmp 
 			}
 		}
 	}
 
-	input := ActionInput{
-		
-		ProjectName: opts.ProjectName,
-		ConfigFile: string(opts.ConfigFile) ,
-		IgnoreConfigFile: opts.IgnoreConfigFile,
-		TargetDirectory: opts.TargetDirectory,
-		PackageManager: opts.PackageManager,
-		ScanVulnerabilities: opts.ScanVulnerabilities,
-		ScanLicenses: opts.ScanLicenses,
-	}
-	return input
+	return opts.AsActionInput()
 }
