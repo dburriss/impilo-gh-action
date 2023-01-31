@@ -46,13 +46,13 @@ func (opts ActionInputOpts) AsActionInput() ActionInput {
 // NewActionInput creates a new ActionInput instance from CLi args
 func NewActionInput(args []string) ActionInput {
 	// TODO: delete from template
-	println("Env Inputs:")
+	/* println("Env Inputs:")
 	for _, envS := range os.Environ() {
 		vs := strings.Split(envS, "=")
 		k := vs[0]
 		v := vs[1]
 		println(k, v)		
-	}
+	} */
 
 	opts := ActionInputOpts{}
 	parser := flags.NewParser(&opts, flags.HelpFlag)
@@ -66,7 +66,7 @@ func NewActionInput(args []string) ActionInput {
 	if !slices.SliceContains(args, "--{{ .ArgName }}") {
 		key := "{{ .ArgName }}"
 		value := githubactions.GetInput(key)
-		println("INPUT {{ .ArgName }} from action is: ", value, " with length ", len(value))
+		// println("INPUT {{ .ArgName }} from action is: ", value, " with length ", len(value))
 		if value != "" {
 			tmp,bErr := strconv.ParseBool(value)
 			if bErr == nil {

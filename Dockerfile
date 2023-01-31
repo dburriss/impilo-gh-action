@@ -3,7 +3,8 @@ FROM golang:1.19.5-alpine
 
 # Install required dependencies
 # npm
-RUN apk update && apk add nodejs
+RUN apk update && apk add nodejs npm
+RUN npm --version
 # RUN npm -g install licensecheck
 
 # Copy all the files from the host into the container
