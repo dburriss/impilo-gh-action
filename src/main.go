@@ -22,6 +22,8 @@ func channelCmd(wg *sync.WaitGroup, reportFeed chan []domain.Report, cmd domain.
 }
 
 func main() {
+	version := "0.0.0"
+	println("Version:", version)
 	// ARGS to INPUT
 	actionInput := domain.NewActionInput(os.Args)
 	fmt.Printf("Input: %+v\n", actionInput)
