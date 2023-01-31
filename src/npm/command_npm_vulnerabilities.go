@@ -81,7 +81,8 @@ func (report NpmScanVulnerabilitiesStdOutReport) Run() {
 func (report NpmScanVulnerabilitiesGithubReport) Run() {
 	a := githubactions.New()
 	c, err := a.Context()
-	if err == nil && c.RunID > 0 {
+	_, summaryFileExists := os.LookupEnv("GITHUB_STEP_SUMMARY")
+	if err == nil && c.RunID > 0 && summaryFileExists {
 		a.Group(report.Title())
 
 		writer := new(strings.Builder)
