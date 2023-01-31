@@ -34,12 +34,13 @@ func BuildConfig(actionInput domain.ActionInput) domain.Config {
 		configs = append(configs, actionInput.ToConfig())
 		// load config file
 		fileConfig, err := loadConfigFile(actionInput.ConfigFile)
-		if err != nil {
+		// fileConfig overrides input config
+		if err == nil {
+			configs = append(configs, fileConfig)
+		} else {
 			log.Fatalf("Error loading config file %s:  \n", err)
 			log.Fatal(err)
 		}
-		// fileConfig overrides input config
-		configs = append(configs, fileConfig)
 	}
 
 	return domain.MergeConfigs(configs)
