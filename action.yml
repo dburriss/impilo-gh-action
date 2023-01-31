@@ -12,10 +12,10 @@ inputs:
     required: false
     default: impilo.yml
     type: string
-  ignore-config-file:
+  use-config-file:
     description: 'Ignore any config file'
     required: false
-    default: 'true'
+    default: 'false'
     type: boolean
   target-directory:
     description: 'Directory where the project file is found'
@@ -27,10 +27,10 @@ inputs:
     required: false
     default: 'npm'
     type: string
-  scan-vulnerabilities:
+  skip-scan-vulnerabilities:
     description: 'Vulnerabilities should be scanned'
     required: false
-    default: 'true'
+    default: 'false'
     type: boolean
   scan-licenses:
     description: 'Licenses should be scanned'
@@ -46,8 +46,8 @@ runs:
   args:
     - ${{ inputs.project-name }}
     - ${{ inputs.config-file }}
-    - ${{ inputs.ignore-config-file }}
+    - ${{ inputs.use-config-file }}
     - ${{ inputs.target-directory }}
     - ${{ inputs.package-manager }}
-    - ${{ inputs.scan-vulnerabilities }}
+    - ${{ inputs.skip-scan-vulnerabilities }}
     - ${{ inputs.scan-licenses }}

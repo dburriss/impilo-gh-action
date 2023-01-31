@@ -4,7 +4,9 @@
 package domain
 
 import (
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/sethvargo/go-githubactions"
@@ -17,10 +19,10 @@ type ActionInputOpts struct {
 	
 	ProjectName string `long:"project-name" description:"Name of the project Default: app" default:"app" env:"INPUT_PROJECT-NAME"` 
 	ConfigFile flags.Filename `long:"config-file" description:"Config file. Default: impilo.yml Default: impilo.yml" default:"impilo.yml" env:"INPUT_CONFIG-FILE"` 
-	IgnoreConfigFile bool `long:"ignore-config-file" description:"Ignore any config file"` 
+	UseConfigFile bool `long:"use-config-file" description:"Ignore any config file"` 
 	TargetDirectory string `long:"target-directory" description:"Directory where the project file is found" default:"" env:"INPUT_TARGET-DIRECTORY"` 
 	PackageManager string `long:"package-manager" description:"Package manager eg. npm, nuget Default: npm" default:"npm" env:"INPUT_PACKAGE-MANAGER"` 
-	ScanVulnerabilities bool `long:"scan-vulnerabilities" description:"Vulnerabilities should be scanned"` 
+	SkipScanVulnerabilities bool `long:"skip-scan-vulnerabilities" description:"Vulnerabilities should be scanned"` 
 	ScanLicenses bool `long:"scan-licenses" description:"Licenses should be scanned"` 
 }
 
@@ -30,10 +32,10 @@ func NewActionInputOpts() ActionInputOpts {
 		
 		ProjectName: "app",
 		ConfigFile: "impilo.yml",
-		IgnoreConfigFile: true,
+		UseConfigFile: false,
 		TargetDirectory: "",
 		PackageManager: "npm",
-		ScanVulnerabilities: true,
+		SkipScanVulnerabilities: false,
 		ScanLicenses: false,
 	}
 }
@@ -43,10 +45,10 @@ type ActionInput struct {
 	
 	ProjectName string 
 	ConfigFile string 
-	IgnoreConfigFile bool 
+	UseConfigFile bool 
 	TargetDirectory string 
 	PackageManager string 
-	ScanVulnerabilities bool 
+	SkipScanVulnerabilities bool 
 	ScanLicenses bool 
 }
 
@@ -56,10 +58,10 @@ func (opts ActionInputOpts) AsActionInput() ActionInput {
 		
 		ProjectName: opts.ProjectName,
 		ConfigFile: string(opts.ConfigFile) ,
-		IgnoreConfigFile: opts.IgnoreConfigFile,
+		UseConfigFile: opts.UseConfigFile,
 		TargetDirectory: opts.TargetDirectory,
 		PackageManager: opts.PackageManager,
-		ScanVulnerabilities: opts.ScanVulnerabilities,
+		SkipScanVulnerabilities: opts.SkipScanVulnerabilities,
 		ScanLicenses: opts.ScanLicenses,
 	}
 	return input
@@ -67,6 +69,15 @@ func (opts ActionInputOpts) AsActionInput() ActionInput {
 
 // NewActionInput creates a new ActionInput instance from CLi args
 func NewActionInput(args []string) ActionInput {
+	// TODO: delete from template
+	println("Env Inputs:")
+	for _, envS := range os.Environ() {
+		vs := strings.Split(envS, "=")
+		k := vs[0]
+		v := vs[1]
+		println(k, v)		
+	}
+
 	opts := ActionInputOpts{}
 	parser := flags.NewParser(&opts, flags.HelpFlag)
 	_, err := parser.ParseArgs(args)
@@ -76,29 +87,32 @@ func NewActionInput(args []string) ActionInput {
 		}
 	}
 	
-	if !slices.SliceContains(args, "--ignore-config-file") {
-		key := "ignore-config-file"
+	if !slices.SliceContains(args, "--use-config-file") {
+		key := "use-config-file"
 		value := githubactions.GetInput(key)
+		println("INPUT use-config-file from action is: ", value, " with length ", len(value))
 		if value != "" {
 			tmp,bErr := strconv.ParseBool(value)
 			if bErr == nil {
-				opts.IgnoreConfigFile = tmp 
+				opts.UseConfigFile = tmp 
 			}
 		}
 	}
-	if !slices.SliceContains(args, "--scan-vulnerabilities") {
-		key := "scan-vulnerabilities"
+	if !slices.SliceContains(args, "--skip-scan-vulnerabilities") {
+		key := "skip-scan-vulnerabilities"
 		value := githubactions.GetInput(key)
+		println("INPUT skip-scan-vulnerabilities from action is: ", value, " with length ", len(value))
 		if value != "" {
 			tmp,bErr := strconv.ParseBool(value)
 			if bErr == nil {
-				opts.ScanVulnerabilities = tmp 
+				opts.SkipScanVulnerabilities = tmp 
 			}
 		}
 	}
 	if !slices.SliceContains(args, "--scan-licenses") {
 		key := "scan-licenses"
 		value := githubactions.GetInput(key)
+		println("INPUT scan-licenses from action is: ", value, " with length ", len(value))
 		if value != "" {
 			tmp,bErr := strconv.ParseBool(value)
 			if bErr == nil {

@@ -154,7 +154,7 @@ func TestToConfigTargetDirectory(t *testing.T) {
 func TestToConfigScanVulnerabilities(t *testing.T) {
 	expected := true
 	input := NewActionInput([]string{})
-	input.ScanVulnerabilities = true
+	input.SkipScanVulnerabilities = true
 
 	config := input.ToConfig()
 	actual := config.ScanVulnerabilities

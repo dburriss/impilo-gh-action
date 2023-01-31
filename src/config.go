@@ -26,7 +26,7 @@ func loadConfigFile(filePath string) (domain.Config, error) {
 
 func BuildConfig(actionInput domain.ActionInput) domain.Config {
 	configs := []domain.Config{domain.NewConfig()}
-	if actionInput.IgnoreConfigFile {
+	if !actionInput.UseConfigFile {
 		fmt.Println("Ignore config file.")
 		configs = append(configs, actionInput.ToConfig())
 	} else {

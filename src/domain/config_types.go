@@ -44,7 +44,7 @@ func (input ActionInput) ToConfig() Config {
 		TargetDirectory: input.TargetDirectory,
 	}
 	inputConfig := Config{
-		ScanVulnerabilities: input.ScanVulnerabilities,
+		ScanVulnerabilities: !input.SkipScanVulnerabilities,
 		ScanLicenses:        input.ScanLicenses,
 		Projects:            []Project{project},
 	}
