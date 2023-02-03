@@ -61,21 +61,30 @@ func (report NpmScanVulnerabilitiesStdOutReport) Run() {
 	}
 	vulTable.Render()
 
-	summaryTable := tablewriter.NewWriter(os.Stdout)
-	summaryTable.SetHeader([]string{"SUMMARY"})
+	println()
+	println(SummaryTableString(report.summary))
+}
+
+func SummaryTableString(summary map[string]int64) string {
+	writer := new(strings.Builder)
+	table := tablewriter.NewWriter(writer)
+	table.SetHeader([]string{"SEVERITY"})
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+	table.SetCenterSeparator("+")
 	total := "0"
-	for k, v := range report.summary {
+	for k, v := range summary {
 		if k == "total" {
 			total = strconv.FormatInt(v, 10)
 			continue
 		}
 		var rowValues []string
-		rowValues = append(rowValues, strings.ToUpper(k))
+		rowValues = append(rowValues, k)
 		rowValues = append(rowValues, strconv.FormatInt(v, 10))
-		summaryTable.Append(rowValues)
+		table.Append(rowValues)
 	}
-	summaryTable.SetFooter([]string{"TOTAL", total})
-	summaryTable.Render()
+	table.SetFooter([]string{"Total", total})
+	table.Render()
+	return writer.String()
 }
 
 func (report NpmScanVulnerabilitiesGithubReport) Run() {
@@ -83,28 +92,10 @@ func (report NpmScanVulnerabilitiesGithubReport) Run() {
 	c, err := a.Context()
 	_, summaryFileExists := os.LookupEnv("GITHUB_STEP_SUMMARY")
 	if err == nil && c.RunID > 0 && summaryFileExists {
-		a.Group(report.Title())
+		//a.Group(report.Title())
 
-		writer := new(strings.Builder)
-		table := tablewriter.NewWriter(writer)
-		table.SetHeader([]string{"SEVERITY"})
-		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-		table.SetCenterSeparator("|")
-		total := "0"
-		for k, v := range report.summary {
-			if k == "total" {
-				total = strconv.FormatInt(v, 10)
-				continue
-			}
-			var rowValues []string
-			rowValues = append(rowValues, k)
-			rowValues = append(rowValues, strconv.FormatInt(v, 10))
-			table.Append(rowValues)
-		}
-		table.SetFooter([]string{"Total", total})
-		table.Render()
-		githubactions.AddStepSummary(writer.String())
-		a.EndGroup()
+		githubactions.AddStepSummary(SummaryTableString(report.summary))
+		//a.EndGroup()
 	}
 }
 

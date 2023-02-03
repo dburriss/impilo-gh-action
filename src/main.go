@@ -16,8 +16,8 @@ ARGS -> INPUT -> CONFIG -> COMMANDs ->
 */
 
 func channelCmd(wg *sync.WaitGroup, reportFeed chan []domain.Report, cmd domain.Command) {
-	result := cmd.Execute()
-	reportFeed <- result
+	report := cmd.Execute()
+	reportFeed <- report
 	wg.Done()
 }
 
